@@ -1,51 +1,101 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
+import React, { useState } from 'react';
+import { createSecureContext } from 'tls';
+
+const songTitles = [
+  "Asterix",
+  "Bella Ciao",
+  "Cumbia Sobre el Mar",
+  "Der Zug um 7.40",
+  "Grenzrenner",
+  "Inner Babylon",
+  "Kids Aren't Alright",
+  "Klezma 34",
+  "Laisse Tomber Les Filles",
+  "L’estaca del pueblo",
+  "Metanioa",
+  "Monkeys Rally",
+  "Montserrat Serrat",
+  "Rasta Funk",
+  "Tammurriata Nera",
+  "Tschufittl Cocek",
+  "You Move You Lose",
+]
+
+const _songs = songTitles.map(title => ({ name: title, selected: 0 }));
+
+const SongButton = (props) => {
+  const { toggleSong, song } = props;
+  const { name, selected = false } = song;
+
+  const handleClick = () => {
+    toggleSong(name);
+  }
+  let selectedClass = "border-gray-200";
+  if (selected === 1) 
+    selectedClass = "border-green-200";
+  else if (selected === -1)
+    selectedClass = "border-red-200";
+  const cn = `rounded border-4 mx-0 my-1 p-2 block basis-1/2  ${selectedClass}`;
+  return (
+    <li className={cn} onClick={handleClick}>{name}</li>
+  )
+}
+
 
 const SongList = (props) => {
-  const { songs = [] } = props;
-  const songButton = (props) => {
-    const { name, selected = false } = props;
-    const selectedClass = selected ? "border-green-200" : "border-gray-200"
-    const cn = "rounded border-4 mx-0 my-1 p-2 " + selectedClass;
-    return (
-      <li key={name} className={cn}>{name}</li>
-    )
-  }
-
+  const { songs = [], toggleSong } = props;
   return (
-    <ul className="p-0 m-0">{songs.map(song => songButton(song))}</ul>
+    <ul className="p-0 m-0     flex  flex-wrap">{
+      songs.map(song =>
+        (<SongButton key={song.name} song={song} toggleSong={toggleSong} />)
+      )}</ul>
   )
 }
 const Home: NextPage = () => {
 
-  const songs = [
-    { name: "A Night in Tunisia", selected: false },
-    { name: "Rasta Funk", selected: true },
-    { name: "YMYL", selected: false }
-  ]
+
+  const [songs, setSongs] = useState(_songs);
+  
+  const rotate = (current) => {
+    switch (current) {
+      case -1:
+        return 0;
+      case 0:
+        return 1;
+      case 1:
+        return -1;
+    }
+}
+
+  const toggleSong = (toggledName: string) => {
+    const newSongs = songs.map(({ name, selected }) => {
+      if (name === toggledName)
+        return { name, selected: rotate(selected) }
+      else
+        return { name, selected }
+    })
+    setSongs(newSongs);
+  }
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
+    <div className="min-h-screen">
       <Head>
-        <title>asdasdd Next App</title>
+        <title>Probeplan</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center">
-        <SongList songs={songs} />
+      <main className="h-screen flex flex-col w-full">
+        <SongList songs={songs} toggleSong={toggleSong} />
+        <button
+        type="button"
+        className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      >
+        Save
+      </button>
       </main>
 
-      <footer className="flex h-24 w-full items-center justify-center border-t">
-        <a
-          className="flex items-center justify-center gap-2"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-        </a>
-      </footer>
     </div>
   )
 }
